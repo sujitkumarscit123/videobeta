@@ -2,12 +2,14 @@ from django.utils.encoding import force_bytes
 from gitdb.utils.encoding import force_text
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework import viewsets
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-
-from .models import User, Role, UserRole
+from .models import User, Role, UserRole, Courses, CourseUsers
+from .serializers import CoursesSerializer
 
 
 @api_view(['POST'])
@@ -30,7 +32,7 @@ def login(request):
     role = request.data.get('role')
 
     user = authenticate(request._request, username=username, password=password)
-    if user is not None and user.roles.filter(name=role).exists():
+    if user is not None and user.user_role.filter(role__name=role).exists():
         request.session['user_id'] = user.pk
         token = default_token_generator.make_token(user)
         uid = urlsafe_base64_encode(force_bytes(user.pk))
@@ -74,3 +76,15 @@ def reset_password(request):
     user.save()
 
     return Response({'message': 'Password reset successfully.'}, status=status.HTTP_200_OK)
+
+class CoursesViewSet(viewsets.ModelViewSet):
+    """
+    A simple ViewSet for viewing and editing accounts.
+    """
+    queryset = CourseUsers.objects.all()
+    serializer_class = CoursesSerializer
+    permission_classes = []
+
+    # def get_queryset(self):
+    #     courses = Courses.objects.filter(user=self.user)
+    #     return courses
