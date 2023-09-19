@@ -1,5 +1,6 @@
 from django.utils.encoding import force_bytes
 from gitdb.utils.encoding import force_text
+from rest_framework.authtoken.models import Token
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework import viewsets
@@ -30,13 +31,20 @@ def login(request):
     username = request.data.get('username')
     password = request.data.get('password')
     role = request.data.get('role')
+    user = User.objects.filter(username=username).first()
 
-    user = authenticate(request._request, username=username, password=password)
+    if user is None or not user.check_password(password):
+        return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+
+
+    # user = authenticate(request._request, username=username, password=password)
     if user is not None and user.user_role.filter(role__name=role).exists():
         request.session['user_id'] = user.pk
-        token = default_token_generator.make_token(user)
-        uid = urlsafe_base64_encode(force_bytes(user.pk))
-        return Response({'token': token, 'uid': uid}, status=status.HTTP_200_OK)
+        # login(request._request)
+        # token = default_token_generator.make_token(user)
+        # uid = urlsafe_base64_encode(force_bytes(user.pk))
+        token, created = Token.objects.get_or_create(user=user)
+        return Response({'token': token.key, }, status=status.HTTP_200_OK)
     else:
         return Response({'message': 'Invalid credentials or role.'}, status=status.HTTP_401_UNAUTHORIZED)
 
@@ -81,10 +89,11 @@ class CoursesViewSet(viewsets.ModelViewSet):
     """
     A simple ViewSet for viewing and editing accounts.
     """
-    queryset = CourseUsers.objects.all()
+    # queryset = CourseUsers.objects.all()
     serializer_class = CoursesSerializer
-    permission_classes = []
+    permission_classes = [IsAuthenticated]
 
-    # def get_queryset(self):
-    #     courses = Courses.objects.filter(user=self.user)
-    #     return courses
+    def get_queryset(self):
+        print('***********', self.request.user)
+        courses = CourseUsers.objects.select_related('user', 'course').filter(user=self.request.user)
+        return courses
