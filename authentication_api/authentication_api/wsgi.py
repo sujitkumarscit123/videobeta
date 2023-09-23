@@ -15,13 +15,4 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'authentication_api.settings')
 
 application = get_wsgi_application()
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'videobeta',
-        'USER': 'admin',
-        'PASSWORD': 'admin',
-        'HOST': 'localhost',  
-        'PORT': '5432',           
-    }
-}
+
