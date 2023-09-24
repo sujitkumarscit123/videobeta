@@ -49,8 +49,20 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 
 class UserRole(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_role')
     role = models.ForeignKey(Role, on_delete=models.CASCADE)
 
     def __str__(self):
         return f"{self.user.username} - {self.role.name}"
+class Courses(models.Model):
+    name=models.CharField(max_length=150, unique=True)
+    startTime=models.DateTimeField(null=True)
+    endTime=models.DateTimeField(null=True)
+    duration=models.IntegerField(null=True)
+    def __str__(self):
+        return self.name
+    
+class CourseUsers(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_course')
+    course = models.ForeignKey(Courses, on_delete=models.CASCADE, related_name='course_users')
+

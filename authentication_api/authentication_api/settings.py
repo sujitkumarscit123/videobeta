@@ -143,7 +143,5 @@ DATABASES = {
         'NAME': 'videobeta',
         'USER': 'admin',
         'PASSWORD': 'admin',
-        'HOST': 'localhost',
-        'PORT': '5432',
     }
 }
